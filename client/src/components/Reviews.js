@@ -25,21 +25,16 @@ const Reviews = ({ productId }) => {
       const response = await axios.get(url);
       const apiReviews = response?.data;
       let normalizedReviews = [];
-      let hasArrayPayload = false;
 
       if (Array.isArray(apiReviews)) {
         normalizedReviews = apiReviews;
-        hasArrayPayload = true;
+        setFetchError('');
       } else if (Array.isArray(apiReviews?.reviews)) {
         normalizedReviews = apiReviews.reviews;
-        hasArrayPayload = true;
-      }
-
-      if (!hasArrayPayload) {
+        setFetchError('');
+      } else {
         console.error('Unexpected reviews payload:', apiReviews);
         setFetchError('Reviews are temporarily unavailable.');
-      } else {
-        setFetchError('');
       }
 
       setReviews(normalizedReviews);

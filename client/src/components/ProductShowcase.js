@@ -96,21 +96,16 @@ function ProductShowcase() {
       const response = await axios.get('/api/products');
       const apiProducts = response?.data;
       let fetchedProducts = [];
-      let hasArrayPayload = false;
 
       if (Array.isArray(apiProducts)) {
         fetchedProducts = apiProducts;
-        hasArrayPayload = true;
+        setError('');
       } else if (Array.isArray(apiProducts?.products)) {
         fetchedProducts = apiProducts.products;
-        hasArrayPayload = true;
-      }
-
-      if (!hasArrayPayload) {
+        setError('');
+      } else {
         console.error('Unexpected products payload:', apiProducts);
         setError('Products are temporarily unavailable.');
-      } else {
-        setError('');
       }
 
       setProducts(fetchedProducts);
@@ -151,7 +146,7 @@ function ProductShowcase() {
       <div className="showcase-container">
         <div className="showcase-eyebrow">Products</div>
         <h2 className="showcase-heading">Our Product Collection</h2>
-        {error && products.length === 0 && <div className="showcase-error">{error}</div>}
+        {error && <div className="showcase-error">{error}</div>}
         
         <div className="featured-product-list">
           {products.map((product, index) => (
