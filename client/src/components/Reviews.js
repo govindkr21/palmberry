@@ -14,6 +14,7 @@ const Reviews = ({ productId }) => {
   const [showForm, setShowForm] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [error, setError] = useState('');
+  const [fetchError, setFetchError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const fetchReviews = useCallback(async () => {
@@ -22,9 +23,23 @@ const Reviews = ({ productId }) => {
         ? `/api/reviews/${productId}` 
         : `/api/reviews`;
       const response = await axios.get(url);
-      setReviews(response.data);
+      const apiReviews = response?.data;
+      const normalizedReviews = Array.isArray(apiReviews)
+        ? apiReviews
+        : (Array.isArray(apiReviews?.reviews) ? apiReviews.reviews : []);
+
+      if (!Array.isArray(apiReviews) && !Array.isArray(apiReviews?.reviews)) {
+        console.error('Unexpected reviews payload:', apiReviews);
+        setFetchError('Reviews are temporarily unavailable.');
+      } else {
+        setFetchError('');
+      }
+
+      setReviews(normalizedReviews);
     } catch (error) {
       console.error('Failed to fetch reviews', error);
+      setReviews([]);
+      setFetchError('Failed to load reviews right now.');
     }
   }, [productId]);
 
@@ -160,7 +175,9 @@ const Reviews = ({ productId }) => {
       )}
 
       <div className="review-list">
-        {featuredReviews.length > 0 ? (
+        {fetchError ? (
+          <p className="no-reviews">{fetchError}</p>
+        ) : featuredReviews.length > 0 ? (
           featuredReviews.map((review) => (
             <div className="review-item" key={review._id}>
               {renderStars(review.rating)}

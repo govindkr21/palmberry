@@ -74,6 +74,7 @@ function ProductShowcase() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});
+  const [error, setError] = useState('');
 
   const getImageSrc = (product) => {
     if (!product.imageUrl) return '';
@@ -93,7 +94,18 @@ function ProductShowcase() {
   const fetchProducts = async () => {
     try {
       const response = await axios.get('/api/products');
-      const fetchedProducts = response.data;
+      const apiProducts = response?.data;
+      const fetchedProducts = Array.isArray(apiProducts)
+        ? apiProducts
+        : (Array.isArray(apiProducts?.products) ? apiProducts.products : []);
+
+      if (!Array.isArray(apiProducts) && !Array.isArray(apiProducts?.products)) {
+        console.error('Unexpected products payload:', apiProducts);
+        setError('Products are temporarily unavailable.');
+      } else {
+        setError('');
+      }
+
       setProducts(fetchedProducts);
       
       // Initialize quantities
@@ -102,10 +114,12 @@ function ProductShowcase() {
         initialQtys[p._id] = 1;
       });
       setQuantities(initialQtys);
-      
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
+      setQuantities({});
+      setError('Failed to load products right now.');
+    } finally {
       setLoading(false);
     }
   };
@@ -130,6 +144,7 @@ function ProductShowcase() {
       <div className="showcase-container">
         <div className="showcase-eyebrow">Products</div>
         <h2 className="showcase-heading">Our Product Collection</h2>
+        {error && products.length === 0 && <div className="loading">{error}</div>}
         
         <div className="featured-product-list">
           {products.map((product, index) => (
