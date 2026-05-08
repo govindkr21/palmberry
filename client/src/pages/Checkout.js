@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Checkout.css';
 import axios from '../api/axios';
 import { clearCart } from '../utils/cartHelper';
 
 const SESSION_ID_KEY = 'palmberry_session_id';
+const toArray = (value) => (Array.isArray(value) ? value : []);
 
 function Checkout() {
   const navigate = useNavigate();
-  const safeArray = (value) => (Array.isArray(value) ? value : []);
 
   const [userAddresses, setUserAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
@@ -34,8 +34,33 @@ function Checkout() {
   const [discount, setDiscount] = useState(0);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const safeCart = safeArray(cart);
-  const safeUserAddresses = safeArray(userAddresses);
+  const safeCart = toArray(cart);
+  const safeUserAddresses = toArray(userAddresses);
+
+  const fetchAddresses = useCallback(async (sessionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const sessId = sessionId || localStorage.getItem(SESSION_ID_KEY);
+      
+      const config = {
+        headers: { 
+          'x-session-id': sessId 
+        }
+      };
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+
+      const response = await axios.get(`/api/get-address?sessionId=${sessId}`, config);
+      const addresses = toArray(response?.data?.addresses);
+      setUserAddresses(addresses);
+      
+      const defaultAddress = addresses.find(addr => addr?.isDefault);
+      if (defaultAddress) {
+        setSelectedAddressId(defaultAddress._id);
+      }
+    } catch (error) {
+      console.error('Failed to load addresses:', error);
+    }
+  }, []);
 
   useEffect(() => {
     // Session ID management
@@ -49,12 +74,12 @@ function Checkout() {
     const storedCart = localStorage.getItem('cart');
     if (storedCart && storedCart !== 'undefined') {
       try {
-        savedCart = safeArray(JSON.parse(storedCart));
+        savedCart = toArray(JSON.parse(storedCart));
       } catch (e) {
         console.error('Failed to parse cart', e);
       }
     }
-    setCart(safeArray(savedCart));
+    setCart(toArray(savedCart));
 
     // Get user info if exists
     let userData = null;
@@ -90,32 +115,7 @@ function Checkout() {
         document.body.removeChild(script);
       }
     };
-  }, []);
-
-  const fetchAddresses = async (sessionId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const sessId = sessionId || localStorage.getItem(SESSION_ID_KEY);
-      
-      const config = {
-        headers: { 
-          'x-session-id': sessId 
-        }
-      };
-      if (token) config.headers.Authorization = `Bearer ${token}`;
-
-      const response = await axios.get(`/api/get-address?sessionId=${sessId}`, config);
-      const addresses = safeArray(response?.data?.addresses);
-      setUserAddresses(addresses);
-      
-      const defaultAddress = addresses.find(addr => addr?.isDefault);
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress._id);
-      }
-    } catch (error) {
-      console.error('Failed to load addresses:', error);
-    }
-  };
+  }, [fetchAddresses]);
 
   const calculateSubtotal = () => {
     return safeCart.reduce((total, item) => total + (item.price || 0) * (item.quantity || item.qty || 1), 0);
