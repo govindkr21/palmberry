@@ -24,10 +24,16 @@ const Reviews = ({ productId }) => {
         : `/api/reviews`;
       const response = await axios.get(url);
       const apiReviews = response?.data;
-      const hasArrayPayload = Array.isArray(apiReviews) || Array.isArray(apiReviews?.reviews);
-      const normalizedReviews = Array.isArray(apiReviews)
-        ? apiReviews
-        : (hasArrayPayload ? apiReviews.reviews : []);
+      let normalizedReviews = [];
+      let hasArrayPayload = false;
+
+      if (Array.isArray(apiReviews)) {
+        normalizedReviews = apiReviews;
+        hasArrayPayload = true;
+      } else if (Array.isArray(apiReviews?.reviews)) {
+        normalizedReviews = apiReviews.reviews;
+        hasArrayPayload = true;
+      }
 
       if (!hasArrayPayload) {
         console.error('Unexpected reviews payload:', apiReviews);

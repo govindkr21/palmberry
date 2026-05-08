@@ -95,10 +95,16 @@ function ProductShowcase() {
     try {
       const response = await axios.get('/api/products');
       const apiProducts = response?.data;
-      const hasArrayPayload = Array.isArray(apiProducts) || Array.isArray(apiProducts?.products);
-      const fetchedProducts = Array.isArray(apiProducts)
-        ? apiProducts
-        : (hasArrayPayload ? apiProducts.products : []);
+      let fetchedProducts = [];
+      let hasArrayPayload = false;
+
+      if (Array.isArray(apiProducts)) {
+        fetchedProducts = apiProducts;
+        hasArrayPayload = true;
+      } else if (Array.isArray(apiProducts?.products)) {
+        fetchedProducts = apiProducts.products;
+        hasArrayPayload = true;
+      }
 
       if (!hasArrayPayload) {
         console.error('Unexpected products payload:', apiProducts);
