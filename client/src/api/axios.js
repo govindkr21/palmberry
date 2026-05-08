@@ -1,9 +1,24 @@
 import axios from 'axios';
 
+// Resolve the API base URL at runtime so the Vercel bundle can reach the
+// Railway backend without needing a rebuild when the backend URL changes.
+// Priority:
+//   1. Build-time env var (REACT_APP_API_URL) — explicit override always wins
+//   2. localhost in development
+//   3. Railway production URL when running on any non-localhost origin
+const resolveBaseURL = () => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+    return 'http://localhost:5000';
+  }
+  return 'https://palmberry-production.up.railway.app';
+};
+
 // Create axios instance
 const api = axios.create({
-  // Use the env variable if present, otherwise default to localhost in development
-  baseURL: process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : ''),
+  baseURL: resolveBaseURL(),
   timeout: 15000, // Increased timeout for production stability
   headers: {
     'Content-Type': 'application/json'
