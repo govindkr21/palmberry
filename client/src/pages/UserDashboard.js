@@ -7,7 +7,6 @@ function UserDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const safeOrders = Array.isArray(orders) ? orders : [];
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -23,7 +22,7 @@ function UserDashboard() {
       const { data } = await axios.get('/api/orders/myorders', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setOrders(Array.isArray(data?.orders) ? data.orders : (Array.isArray(data) ? data : []));
+      setOrders(data);
       setLoading(false);
     } catch (err) {
       console.error('Failed to fetch orders', err);
@@ -40,11 +39,11 @@ function UserDashboard() {
           <h2>Your Orders</h2>
           {loading ? (
             <p>Loading orders...</p>
-          ) : safeOrders.length === 0 ? (
+          ) : orders.length === 0 ? (
             <p>You haven't placed any orders yet.</p>
           ) : (
             <div className="order-list">
-              {safeOrders.map(order => (
+              {orders.map(order => (
                 <div key={order._id} className="order-item">
                   <div className="order-header">
                     <span>Order #{order._id.slice(-8)}</span>
@@ -55,8 +54,8 @@ function UserDashboard() {
                     <p>Total: ₹{order.totalPrice}</p>
                   </div>
                   <div className="order-products">
-                    {(Array.isArray(order?.orderItems) ? order.orderItems : []).map((item, idx) => (
-                      <div key={item?.product?._id || idx} className="product-summary">
+                    {order.orderItems.map(item => (
+                      <div key={item.product._id} className="product-summary">
                         <span>{item.name} x {item.quantity}</span>
                       </div>
                     ))}

@@ -10,7 +10,6 @@ function AdminCoupons() {
   const [discount, setDiscount] = useState('');
   const [error, setError] = useState('');
   const [editingCoupon, setEditingCoupon] = useState(null);
-  const safeCoupons = Array.isArray(coupons) ? coupons : [];
 
   const getAuthHeader = useCallback(() => {
     const token = localStorage.getItem('adminToken');
@@ -27,10 +26,9 @@ function AdminCoupons() {
       const { data } = await axios.get('/api/coupons', {
         headers: getAuthHeader()
       });
-      setCoupons(Array.isArray(data?.coupons) ? data.coupons : (Array.isArray(data) ? data : []));
+      setCoupons(data);
     } catch (err) {
       setError('Failed to load coupons');
-      setCoupons([]);
     }
   }, [getAuthHeader]);
 
@@ -114,7 +112,7 @@ function AdminCoupons() {
             </tr>
           </thead>
           <tbody>
-            {safeCoupons.map(coupon => (
+            {coupons.map(coupon => (
               <tr key={coupon._id}>
                 <td>{coupon.code}</td>
                 <td>{coupon.discount}%</td>

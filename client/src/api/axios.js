@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-  // In production use REACT_APP_API_URL; in development fall back to relative API paths (CRA proxy support)
-  baseURL: process.env.REACT_APP_API_URL || '',
+  // Use the env variable if present, otherwise default to localhost in development
+  baseURL: process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : ''),
   timeout: 15000, // Increased timeout for production stability
   headers: {
     'Content-Type': 'application/json'

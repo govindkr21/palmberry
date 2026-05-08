@@ -9,7 +9,6 @@ export default function AddressBook() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const safeAddresses = Array.isArray(addresses) ? addresses : [];
   
   const [formData, setFormData] = useState({
     type: 'home',
@@ -34,10 +33,9 @@ export default function AddressBook() {
       const response = await axios.get('/api/addresses', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAddresses(Array.isArray(response?.data?.addresses) ? response.data.addresses : []);
+      setAddresses(response.data.addresses);
     } catch (err) {
       setError('Failed to load addresses');
-      setAddresses([]);
     }
   };
 
@@ -277,7 +275,7 @@ export default function AddressBook() {
       )}
 
       <div className="address-list">
-        {safeAddresses.length === 0 ? (
+        {addresses.length === 0 ? (
           <div className="empty-state">
             <p>No addresses saved yet.</p>
             <button onClick={() => setShowForm(true)} className="add-btn">
@@ -285,7 +283,7 @@ export default function AddressBook() {
             </button>
           </div>
         ) : (
-          safeAddresses.map((address) => (
+          addresses.map((address) => (
             <div key={address._id} className={`address-card ${address.isDefault ? 'default' : ''}`}>
               {address.isDefault && <div className="default-badge">Default</div>}
               

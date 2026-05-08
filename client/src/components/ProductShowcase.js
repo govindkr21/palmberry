@@ -74,7 +74,6 @@ function ProductShowcase() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});
-  const safeProducts = Array.isArray(products) ? products : [];
 
   const getImageSrc = (product) => {
     if (!product.imageUrl) return '';
@@ -94,12 +93,7 @@ function ProductShowcase() {
   const fetchProducts = async () => {
     try {
       const response = await axios.get('/api/products');
-      const fetchedProductsRaw = Array.isArray(response?.data)
-        ? response.data
-        : Array.isArray(response?.data?.products)
-          ? response.data.products
-          : [];
-      const fetchedProducts = fetchedProductsRaw.filter((p) => p && typeof p === 'object');
+      const fetchedProducts = response.data;
       setProducts(fetchedProducts);
       
       // Initialize quantities
@@ -111,12 +105,7 @@ function ProductShowcase() {
       
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching products', {
-        message: error?.message,
-        status: error?.response?.status
-      });
-      setProducts([]);
-      setQuantities({});
+      console.error('Error fetching products:', error);
       setLoading(false);
     }
   };
@@ -130,16 +119,8 @@ function ProductShowcase() {
 
   const handleAddToCart = async (product) => {
     const qty = quantities[product._id] || 1;
-    try {
-      await addToCartAPI(product._id, qty);
-      alert(`${qty} ${product.name} added to cart!`);
-    } catch (error) {
-      console.error('Add to cart failed', {
-        message: error?.message,
-        status: error?.response?.status
-      });
-      alert('Unable to add item to cart. Please try again.');
-    }
+    await addToCartAPI(product._id, qty);
+    alert(`${qty} ${product.name} added to cart!`);
   };
 
   if (loading) return <div className="loading">Loading products...</div>;
@@ -151,8 +132,8 @@ function ProductShowcase() {
         <h2 className="showcase-heading">Our Product Collection</h2>
         
         <div className="featured-product-list">
-          {safeProducts.map((product, index) => (
-            <div key={product?._id || index} className={`featured-product ${index % 2 === 1 ? 'reverse' : ''}`}>
+          {products.map((product, index) => (
+            <div key={product._id} className={`featured-product ${index % 2 === 1 ? 'reverse' : ''}`}>
               <ProductImage product={product} getImageSrc={getImageSrc} />
 
               <div className="featured-copy">
@@ -198,9 +179,6 @@ function ProductShowcase() {
               </div>
             </div>
           ))}
-          {safeProducts.length === 0 && (
-            <div className="loading">No products available right now.</div>
-          )}
         </div>
       </div>
     </section>

@@ -7,7 +7,6 @@ function AdminOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState('');
-  const safeOrders = Array.isArray(orders) ? orders : [];
 
   const getAuthHeader = useCallback(() => {
     const token = localStorage.getItem('adminToken');
@@ -24,10 +23,9 @@ function AdminOrders() {
       const { data } = await axios.get('/api/orders', {
         headers: getAuthHeader()
       });
-      setOrders(Array.isArray(data?.orders) ? data.orders : (Array.isArray(data) ? data : []));
+      setOrders(data);
     } catch (err) {
       setError('Failed to load orders');
-      setOrders([]);
     }
   }, [getAuthHeader]);
 
@@ -62,7 +60,7 @@ function AdminOrders() {
             </tr>
           </thead>
           <tbody>
-            {safeOrders.map(order => (
+            {orders.map(order => (
               <tr key={order._id}>
                 <td>{order._id}</td>
                 <td>{order.user?.name || 'Guest'}</td>
