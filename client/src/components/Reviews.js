@@ -15,6 +15,7 @@ const Reviews = ({ productId }) => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -22,9 +23,10 @@ const Reviews = ({ productId }) => {
         ? `/api/reviews/${productId}` 
         : `/api/reviews`;
       const response = await axios.get(url);
-      setReviews(response.data);
+      setReviews(Array.isArray(response?.data?.reviews) ? response.data.reviews : (Array.isArray(response?.data) ? response.data : []));
     } catch (error) {
       console.error('Failed to fetch reviews', error);
+      setReviews([]);
     }
   }, [productId]);
 
@@ -76,8 +78,9 @@ const Reviews = ({ productId }) => {
     );
   };
 
-  const carouselReviews = reviews.length > 4 ? reviews.slice(4) : [];
-  const featuredReviews = reviews.slice(0, 4);
+  const carouselReviews = safeReviews.length > 4 ? safeReviews.slice(4) : [];
+  const featuredReviews = safeReviews.slice(0, 4);
+  const currentCarouselReview = carouselReviews[carouselIndex] || null;
 
   const showPreviousCarouselReview = () => {
     setCarouselIndex((prev) =>
@@ -179,7 +182,7 @@ const Reviews = ({ productId }) => {
         )}
       </div>
 
-      {carouselReviews.length > 0 && (
+      {carouselReviews.length > 0 && currentCarouselReview && (
         <div className="review-carousel">
           <div className="carousel-header">More Reviews</div>
           <div className="carousel-content">
@@ -188,15 +191,15 @@ const Reviews = ({ productId }) => {
             </button>
 
              <div className="review-item carousel-item">
-              {renderStars(carouselReviews[carouselIndex].rating)}
-              <p>"{carouselReviews[carouselIndex].review_text}"</p>
-              <div className="review-author">
-                <div className="review-avatar">{(carouselReviews[carouselIndex].name || 'U')[0]}</div>
-                <div>
-                  <h4>{carouselReviews[carouselIndex].name}</h4>
-                  <div className="review-meta">Verified Purchase</div>
-                </div>
-              </div>
+               {renderStars(currentCarouselReview.rating)}
+               <p>"{currentCarouselReview.review_text}"</p>
+               <div className="review-author">
+                 <div className="review-avatar">{(currentCarouselReview.name || 'U')[0]}</div>
+                 <div>
+                   <h4>{currentCarouselReview.name}</h4>
+                   <div className="review-meta">Verified Purchase</div>
+                 </div>
+               </div>
             </div>
 
             <button className="carousel-nav" onClick={showNextCarouselReview} aria-label="Next review">

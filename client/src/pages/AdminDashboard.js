@@ -6,6 +6,7 @@ import autoTable from 'jspdf-autotable';
 import '../styles/AdminDashboard.css';
 
 function AdminDashboard() {
+  const normalizeArray = (value) => (Array.isArray(value) ? value : []);
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [coupons, setCoupons] = useState([]);
@@ -21,6 +22,10 @@ function AdminDashboard() {
     code: '', discount: '', expiryDate: ''
   });
   const [message, setMessage] = useState({ text: '', type: '' });
+  const safeOrders = normalizeArray(orders);
+  const safeProducts = normalizeArray(products);
+  const safeCoupons = normalizeArray(coupons);
+  const safeReviews = normalizeArray(reviews);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -28,7 +33,7 @@ function AdminDashboard() {
       const response = await axios.get('/api/admin/orders', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setOrders(response.data);
+      setOrders(normalizeArray(response?.data?.orders ?? response?.data));
     } catch (error) {
       console.error('Failed to fetch orders', error);
       if (error.response?.status === 401) {
@@ -41,7 +46,7 @@ function AdminDashboard() {
   const fetchProducts = useCallback(async () => {
     try {
       const response = await axios.get('/api/products');
-      setProducts(response.data);
+      setProducts(normalizeArray(response?.data?.products ?? response?.data));
     } catch (error) {
       console.error('Failed to fetch products', error);
     }
@@ -53,7 +58,7 @@ function AdminDashboard() {
       const response = await axios.get('/api/admin/coupons', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setCoupons(response.data);
+      setCoupons(normalizeArray(response?.data?.coupons ?? response?.data));
     } catch (error) {
       console.error('Failed to fetch coupons', error);
     }
@@ -65,7 +70,7 @@ function AdminDashboard() {
       const response = await axios.get('/api/admin/reviews', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setReviews(response.data);
+      setReviews(normalizeArray(response?.data?.reviews ?? response?.data));
     } catch (error) {
       console.error('Failed to fetch reviews', error);
     }
@@ -231,11 +236,11 @@ function AdminDashboard() {
     doc.text('152002, Palmberry', 14, 80);
 
     // Items Table
-    const tableData = order.orderItems.map(item => [
+    const tableData = normalizeArray(order?.orderItems).map(item => [
       item.name || (item.product?.name) || 'Product',
       item.quantity || item.qty || 1,
-      `INR ${item.price.toFixed(2)}`,
-      `INR ${(item.price * (item.quantity || item.qty || 1)).toFixed(2)}`
+      `INR ${Number(item.price || 0).toFixed(2)}`,
+      `INR ${(Number(item.price || 0) * Number(item.quantity || item.qty || 1)).toFixed(2)}`
     ]);
 
     autoTable(doc, {
@@ -293,7 +298,7 @@ function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((order) => (
+                    {safeOrders.map((order) => (
                       <tr key={order._id}>
                         <td><span className="order-number">{order.orderNumber || (order._id ? order._id.slice(-6) : 'N/A')}</span></td>
                         <td>
@@ -347,7 +352,7 @@ function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {products.map((p) => (
+                    {safeProducts.map((p) => (
                       <tr key={p._id}>
                         <td>
                           <img src={(p.imageUrl?.startsWith('data:') || p.imageUrl?.startsWith('http')) ? p.imageUrl : `${process.env.REACT_APP_API_URL || ''}${p.imageUrl}`} alt="" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
@@ -409,7 +414,7 @@ function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {coupons.map((c) => (
+                    {safeCoupons.map((c) => (
                       <tr key={c._id}>
                         <td><strong>{c.code}</strong></td>
                         <td>{c.discount}%</td>
@@ -459,7 +464,7 @@ function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {reviews.map((r) => (
+                    {safeReviews.map((r) => (
                       <tr key={r._id}>
                         <td><strong>{r.user?.name || r.name}</strong></td>
                         <td>{r.product?.name || 'Deleted Product'}</td>

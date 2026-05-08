@@ -9,6 +9,8 @@ function AdminUsers() {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeOrders = Array.isArray(orders) ? orders : [];
 
   const getAuthHeader = useCallback(() => {
     const token = localStorage.getItem('adminToken');
@@ -24,9 +26,10 @@ function AdminUsers() {
       const { data } = await axios.get('/api/auth', {
         headers: getAuthHeader()
       });
-      setUsers(data);
+      setUsers(Array.isArray(data?.users) ? data.users : (Array.isArray(data) ? data : []));
     } catch (err) {
       setError('Failed to load users');
+      setUsers([]);
     }
   }, [getAuthHeader]);
 
@@ -35,9 +38,10 @@ function AdminUsers() {
       const { data } = await axios.get('/api/orders', {
         headers: getAuthHeader()
       });
-      setOrders(data);
+      setOrders(Array.isArray(data?.orders) ? data.orders : (Array.isArray(data) ? data : []));
     } catch (err) {
       setError('Failed to load orders');
+      setOrders([]);
     }
   }, [getAuthHeader]);
 
@@ -47,7 +51,7 @@ function AdminUsers() {
   }, [fetchUsers, fetchAllOrders]);
 
   const getUserOrders = (userId) => {
-    return orders.filter(order => order.user && (order.user._id === userId || order.user === userId));
+    return safeOrders.filter(order => order?.user && (order.user._id === userId || order.user === userId));
   };
 
   return (
@@ -67,7 +71,7 @@ function AdminUsers() {
             </tr>
           </thead>
           <tbody>
-            {users.map(user => {
+            {safeUsers.map(user => {
               const userOrders = getUserOrders(user._id);
               return (
                 <tr key={user._id}>
