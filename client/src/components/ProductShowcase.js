@@ -151,7 +151,7 @@ function ProductShowcase() {
       <div className="showcase-container">
         <div className="showcase-eyebrow">Products</div>
         <h2 className="showcase-heading">Our Product Collection</h2>
-        {error && products.length === 0 && <div className="loading">{error}</div>}
+        {error && products.length === 0 && <div className="showcase-error">{error}</div>}
         
         <div className="featured-product-list">
           {products.map((product, index) => (

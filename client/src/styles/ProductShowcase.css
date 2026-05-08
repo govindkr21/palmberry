@@ -37,6 +37,13 @@
   letter-spacing: -0.5px;
 }
 
+.showcase-error {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #a83232;
+  font-weight: 500;
+}
+
 .showcase-eyebrow-sub {
   text-align: center;
   color: #a56d2b;
