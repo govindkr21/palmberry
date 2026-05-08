@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Checkout.css';
 import axios from '../api/axios';
 import { clearCart } from '../utils/cartHelper';
 
 const SESSION_ID_KEY = 'palmberry_session_id';
+const toArray = (value) => (Array.isArray(value) ? value : []);
 
 function Checkout() {
   const navigate = useNavigate();
@@ -33,6 +34,33 @@ function Checkout() {
   const [discount, setDiscount] = useState(0);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const safeCart = toArray(cart);
+  const safeUserAddresses = toArray(userAddresses);
+
+  const fetchAddresses = useCallback(async (sessionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const sessId = sessionId || localStorage.getItem(SESSION_ID_KEY);
+      
+      const config = {
+        headers: { 
+          'x-session-id': sessId 
+        }
+      };
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+
+      const response = await axios.get(`/api/get-address?sessionId=${sessId}`, config);
+      const addresses = toArray(response?.data?.addresses);
+      setUserAddresses(addresses);
+      
+      const defaultAddress = addresses.find(addr => addr?.isDefault);
+      if (defaultAddress) {
+        setSelectedAddressId(defaultAddress._id);
+      }
+    } catch (error) {
+      console.error('Failed to load addresses:', error);
+    }
+  }, []);
 
   useEffect(() => {
     // Session ID management
@@ -46,12 +74,12 @@ function Checkout() {
     const storedCart = localStorage.getItem('cart');
     if (storedCart && storedCart !== 'undefined') {
       try {
-        savedCart = JSON.parse(storedCart) || [];
+        savedCart = toArray(JSON.parse(storedCart));
       } catch (e) {
         console.error('Failed to parse cart', e);
       }
     }
-    setCart(savedCart);
+    setCart(toArray(savedCart));
 
     // Get user info if exists
     let userData = null;
@@ -87,34 +115,10 @@ function Checkout() {
         document.body.removeChild(script);
       }
     };
-  }, []);
-
-  const fetchAddresses = async (sessionId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const sessId = sessionId || localStorage.getItem(SESSION_ID_KEY);
-      
-      const config = {
-        headers: { 
-          'x-session-id': sessId 
-        }
-      };
-      if (token) config.headers.Authorization = `Bearer ${token}`;
-
-      const response = await axios.get(`/api/get-address?sessionId=${sessId}`, config);
-      setUserAddresses(response.data.addresses);
-      
-      const defaultAddress = response.data.addresses.find(addr => addr.isDefault);
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress._id);
-      }
-    } catch (error) {
-      console.error('Failed to load addresses:', error);
-    }
-  };
+  }, [fetchAddresses]);
 
   const calculateSubtotal = () => {
-    return cart.reduce((total, item) => total + (item.price || 0) * (item.quantity || item.qty || 1), 0);
+    return safeCart.reduce((total, item) => total + (item.price || 0) * (item.quantity || item.qty || 1), 0);
   };
 
   const calculateTax = () => {
@@ -199,12 +203,12 @@ function Checkout() {
   const handleCheckout = async (e) => {
     e.preventDefault();
     
-    if (!selectedAddressId && userAddresses.length > 0) {
+    if (!selectedAddressId && safeUserAddresses.length > 0) {
       setMessage('✗ Please select a delivery address');
       return;
     }
 
-    if (userAddresses.length === 0 && !showAddressForm) {
+    if (safeUserAddresses.length === 0 && !showAddressForm) {
       setMessage('✗ Please add a delivery address');
       setShowAddressForm(true);
       return;
@@ -216,7 +220,7 @@ function Checkout() {
     try {
       const sessionId = localStorage.getItem(SESSION_ID_KEY);
       const token = localStorage.getItem('token');
-      const selectedAddress = userAddresses.find(addr => addr._id === selectedAddressId);
+      const selectedAddress = safeUserAddresses.find(addr => addr?._id === selectedAddressId);
       
       const shippingInfo = selectedAddress ? {
         address: selectedAddress.street,
@@ -240,7 +244,7 @@ function Checkout() {
       if (token) config.headers.Authorization = `Bearer ${token}`;
 
       const orderPayload = {
-        orderItems: cart.map(item => ({
+        orderItems: safeCart.map(item => ({
           name: item.name,
           qty: item.quantity || item.qty || 1,
           price: item.price,
@@ -262,18 +266,26 @@ function Checkout() {
         amount: calculateTotal(),
         orderData: orderPayload
       }, config);
+      const paymentData = paymentRes?.data || {};
+      if (!paymentData.razorpay_order_id) {
+        throw new Error('Invalid payment response');
+      }
+
+      if (!window.Razorpay) {
+        throw new Error('Razorpay SDK unavailable');
+      }
 
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_1234567890abcd',
-        amount: paymentRes.data.amount,
-        currency: paymentRes.data.currency,
-        order_id: paymentRes.data.razorpay_order_id,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+        order_id: paymentData.razorpay_order_id,
         name: 'PalmBerry',
         description: 'Quality Palm Jaggery Order',
         handler: async (response) => {
           try {
             const verifyRes = await axios.post('/api/verify-payment', {
-              checkout_token: paymentRes.data.checkout_token,
+              checkout_token: paymentData.checkout_token,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
@@ -282,12 +294,12 @@ function Checkout() {
             }, config);
 
             if (verifyRes.data.success) {
-              const lastOrder = {
-                orderId: verifyRes.data.order?._id,
-                totalPrice: calculateTotal(),
-                items: cart,
-                buyerName: shippingInfo.name
-              };
+                const lastOrder = {
+                  orderId: verifyRes.data.order?._id,
+                  totalPrice: calculateTotal(),
+                  items: safeCart,
+                  buyerName: shippingInfo.name
+                };
               localStorage.setItem('palmberry_last_order', JSON.stringify(lastOrder));
 
               setMessage('✓ ' + verifyRes.data.message);
@@ -337,9 +349,9 @@ function Checkout() {
           <section className="checkout-section">
             <h2><span className="step-number">1</span> Delivery Address</h2>
             
-            {userAddresses.length > 0 && (
+            {safeUserAddresses.length > 0 && (
               <div className="addresses-grid">
-                {userAddresses.map(address => (
+                {safeUserAddresses.map(address => (
                   <div 
                     key={address._id} 
                     className={`address-card ${selectedAddressId === address._id ? 'selected' : ''}`}
@@ -390,7 +402,7 @@ function Checkout() {
           <section className="checkout-section">
             <h2><span className="step-number">2</span> Order Review</h2>
             <div className="checkout-cart-summary">
-              {cart.map((item, idx) => (
+              {safeCart.map((item, idx) => (
                 <div key={idx} className="checkout-item">
                   <div className="item-info">
                     <strong>{item.name}</strong>
@@ -421,7 +433,7 @@ function Checkout() {
             <div className="bill-divider"></div>
             <div className="bill-row total"><span>Total</span><span>₹{calculateTotal().toFixed(2)}</span></div>
             
-            <button className="pay-now-btn" onClick={handleCheckout} disabled={loading || cart.length === 0}>
+            <button className="pay-now-btn" onClick={handleCheckout} disabled={loading || safeCart.length === 0}>
               {loading ? 'Processing...' : `Pay ₹${calculateTotal().toFixed(2)}`}
             </button>
 

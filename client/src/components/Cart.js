@@ -8,6 +8,7 @@ function Cart({ onClose }) {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const safeCart = Array.isArray(cart) ? cart : [];
 
   useEffect(() => {
     loadCart();
@@ -16,26 +17,30 @@ function Cart({ onClose }) {
   const loadCart = async () => {
     try {
       const items = await fetchCartAPI();
-      setCart(items);
+      setCart(Array.isArray(items) ? items : []);
     } catch (error) {
-      setCart(getCart());
+      setCart(Array.isArray(getCart()) ? getCart() : []);
     } finally {
       setLoading(false);
     }
   };
 
   const updateQuantity = async (productId, currentQty, delta) => {
+    if (!productId) return;
     const newQty = currentQty + delta;
     try {
       const updatedCart = await updateQuantityAPI(productId, newQty);
-      setCart(updatedCart);
+      setCart(Array.isArray(updatedCart) ? updatedCart : []);
     } catch (error) {
-      console.error('Failed to update quantity', error);
+      console.error('Failed to update quantity', {
+        message: error?.message,
+        status: error?.response?.status
+      });
     }
   };
 
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
+    return safeCart.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0);
   };
 
   const handleCheckout = () => {
@@ -54,7 +59,7 @@ function Cart({ onClose }) {
 
       {loading ? (
         <div className="cart-loading">Loading...</div>
-      ) : cart.length === 0 ? (
+      ) : safeCart.length === 0 ? (
         <div className="empty-cart">
           <p>Your cart is empty</p>
           <button className="shop-now-btn" onClick={onClose}>Start Shopping</button>
@@ -62,19 +67,19 @@ function Cart({ onClose }) {
       ) : (
         <>
           <div className="cart-items">
-            {cart.map((item) => (
-              <div key={item._id} className="cart-item">
+            {safeCart.map((item, index) => (
+              <div key={item?._id || index} className="cart-item">
                 <div className="item-info">
                   <h4>{item.name}</h4>
-                  <p>₹{item.price?.toFixed(2)}</p>
+                  <p>₹{Number(item.price || 0).toFixed(2)}</p>
                   <div className="quantity-control">
-                    <button onClick={() => updateQuantity(item._id, item.quantity, -1)}><FiMinus /></button>
-                    <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item._id, item.quantity, 1)}><FiPlus /></button>
+                    <button onClick={() => updateQuantity(item._id, item.quantity || 1, -1)}><FiMinus /></button>
+                    <span>{item.quantity || 1}</span>
+                    <button onClick={() => updateQuantity(item._id, item.quantity || 1, 1)}><FiPlus /></button>
                   </div>
                 </div>
                 <div className="item-total">
-                  ₹{(item.price * item.quantity).toFixed(2)}
+                  ₹{(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}
                 </div>
               </div>
             ))}

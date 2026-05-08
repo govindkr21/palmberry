@@ -1,6 +1,7 @@
 import axios from '../api/axios';
 
 const SESSION_ID_KEY = 'palmberry_session_id';
+const safeArray = (value) => (Array.isArray(value) ? value : []);
 
 const getSessionId = () => {
   let sessionId = localStorage.getItem(SESSION_ID_KEY);
@@ -27,7 +28,7 @@ export const addToCartAPI = async (productId, qty = 1) => {
   try {
     const response = await axios.post('/api/add-to-cart', { productId, qty, sessionId }, config);
     // Refresh local storage from backend
-    const cartItems = response.data.items.map(item => ({
+    const cartItems = safeArray(response?.data?.items).filter((item) => item && typeof item === 'object').map(item => ({
       _id: item.product?._id || item.product,
       name: item.name,
       price: item.price,
@@ -51,7 +52,7 @@ export const updateQuantityAPI = async (productId, qty) => {
 
   try {
     const response = await axios.post('/api/update-cart', { productId, qty, sessionId }, config);
-    const cartItems = response.data.items.map(item => ({
+    const cartItems = safeArray(response?.data?.items).filter((item) => item && typeof item === 'object').map(item => ({
       _id: item.product?._id || item.product,
       name: item.name,
       price: item.price,
@@ -75,7 +76,7 @@ export const fetchCartAPI = async () => {
 
   try {
     const response = await axios.get(`/api/get-cart?sessionId=${sessionId}`, config);
-    const cartItems = (response.data.items || []).map(item => ({
+    const cartItems = safeArray(response?.data?.items).filter((item) => item && typeof item === 'object').map(item => ({
       _id: item.product?._id || item.product,
       name: item.name,
       price: item.price,
@@ -101,7 +102,8 @@ export const getCart = () => {
   const storedCart = localStorage.getItem('cart');
   if (storedCart && storedCart !== 'undefined') {
     try {
-      return JSON.parse(storedCart) || [];
+      const parsed = JSON.parse(storedCart);
+      return safeArray(parsed);
     } catch (e) {
       return [];
     }

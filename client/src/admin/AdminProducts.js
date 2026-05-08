@@ -13,6 +13,7 @@ function AdminProducts() {
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState('');
   const [editingProduct, setEditingProduct] = useState(null);
+  const safeProducts = Array.isArray(products) ? products : [];
 
   const getAdminToken = () => localStorage.getItem('adminToken');
 
@@ -33,9 +34,10 @@ function AdminProducts() {
   const fetchProducts = async () => {
     try {
       const { data } = await axios.get('/api/products');
-      setProducts(data);
+      setProducts(Array.isArray(data?.products) ? data.products : (Array.isArray(data) ? data : []));
     } catch (err) {
       setError('Failed to load products');
+      setProducts([]);
     }
   };
 
@@ -132,7 +134,7 @@ function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {products.map(product => (
+            {safeProducts.map(product => (
               <tr key={product._id}>
                 <td>{product.name}</td>
                 <td>₹{product.price}</td>
