@@ -95,11 +95,12 @@ function ProductShowcase() {
     try {
       const response = await axios.get('/api/products');
       const apiProducts = response?.data;
+      const hasArrayPayload = Array.isArray(apiProducts) || Array.isArray(apiProducts?.products);
       const fetchedProducts = Array.isArray(apiProducts)
         ? apiProducts
-        : (Array.isArray(apiProducts?.products) ? apiProducts.products : []);
+        : (hasArrayPayload ? apiProducts.products : []);
 
-      if (!Array.isArray(apiProducts) && !Array.isArray(apiProducts?.products)) {
+      if (!hasArrayPayload) {
         console.error('Unexpected products payload:', apiProducts);
         setError('Products are temporarily unavailable.');
       } else {
