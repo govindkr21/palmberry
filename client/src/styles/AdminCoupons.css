@@ -1,0 +1,85 @@
+.admin-coupons {
+    padding: 1rem;
+  }
+  
+  .coupon-form {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+  
+  .coupon-form h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+  }
+  
+  .coupon-form input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .coupon-form .form-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .coupon-form button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .coupon-form button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .coupon-form button[type="button"] {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .coupon-list table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+  
+  .coupon-list th,
+  .coupon-list td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .coupon-list th {
+    background-color: #f2f2f2;
+  }
+  
+  .coupon-list td button {
+    margin-right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .coupon-list td button:first-of-type {
+    background-color: #2196F3;
+    color: white;
+  }
+  
+  .coupon-list td button:last-of-type {
+    background-color: #f44336;
+    color: white;
+  }
+  

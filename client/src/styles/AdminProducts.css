@@ -1,0 +1,86 @@
+.admin-products {
+    padding: 1rem;
+  }
+  
+  .product-form {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+  
+  .product-form h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+  }
+  
+  .product-form input,
+  .product-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .form-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .product-form button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .product-form button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .product-form button[type="button"] {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .product-list table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+  
+  .product-list th,
+  .product-list td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .product-list th {
+    background-color: #f2f2f2;
+  }
+  
+  .product-list td button {
+    margin-right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .product-list td button:first-of-type {
+    background-color: #2196F3;
+    color: white;
+  }
+  
+  .product-list td button:last-of-type {
+    background-color: #f44336;
+    color: white;
+  }
+  

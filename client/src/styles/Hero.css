@@ -1,0 +1,226 @@
+.hero {
+  background: linear-gradient(135deg, #faf8f5 0%, #f5f1ed 100%);
+  color: #3a3a3a;
+  padding: 6rem 2rem;
+  min-height: 700px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -200px;
+  width: 500px;
+  height: 500px;
+  background: rgba(232, 212, 196, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -150px;
+  left: -300px;
+  width: 600px;
+  height: 600px;
+  background: rgba(26, 61, 46, 0.03);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-content h1 {
+  color: #5c4033;
+  font-size: 3.5rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: #6b7560;
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+.cta-button {
+  background: #5c4033;
+  color: white;
+  padding: 0.95rem 2.5rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(26, 61, 46, 0.15);
+  letter-spacing: 0.5px;
+}
+
+.cta-button:hover {
+  background: #0f2818;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(26, 61, 46, 0.25);
+}
+
+.hero-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Image Carousel Styles */
+.image-carousel {
+  position: relative;
+  width: 100%;
+  height: 550px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-slide {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.carousel-slide.active {
+  opacity: 1;
+}
+
+.carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(26, 61, 46, 0.85), transparent);
+  color: white;
+  padding: 2.5rem;
+  text-align: center;
+  animation: slideUp 0.6s ease-out;
+}
+
+.carousel-caption h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #e8dcd2;
+  letter-spacing: -0.5px;
+}
+
+.carousel-caption p {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 400;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Carousel Dots */
+.carousel-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background: white;
+  width: 30px;
+  border-radius: 5px;
+  transform: none;
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 3rem 1.5rem;
+    min-height: 500px;
+  }
+
+  .hero-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .image-carousel {
+    height: 350px;
+  }
+
+  .carousel-caption {
+    padding: 1.5rem;
+  }
+
+  .carousel-caption h3 {
+    font-size: 1.2rem;
+  }
+
+  .carousel-caption p {
+    font-size: 0.85rem;
+  }
+}

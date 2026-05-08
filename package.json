@@ -1,0 +1,26 @@
+{
+  "name": "palmberry",
+  "version": "1.0.0",
+  "description": "Full-stack e-commerce platform for PalmBerry natural health products",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm install && npm run build && cd ../server && npm install"
+  },
+  "keywords": [
+    "e-commerce",
+    "mern",
+    "react",
+    "node",
+    "mongodb",
+    "express"
+  ],
+  "author": "PalmBerry",
+  "license": "ISC",
+  "dependencies": {
+    "mongodb": "^7.2.0",
+    "concurrently": "^8.2.1"
+  }
+}
